@@ -56,7 +56,7 @@ class DetailActivity : BaseActivity() {
         item = intent.getParcelableExtra("object")!!
         val userId = FirebaseAuth.getInstance().currentUser?.uid
         if (userId == null) {
-            Toast.makeText(this, "User not logged in", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Người dùng không đăng nhập", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -166,7 +166,7 @@ fun DetailScreen(
         }
 
         RatingBar(rating = item.rating)
-
+        //Các dòng sản phẩm
         ModelSelector(
             models = item.model,
             selectedModeIndex = selectedModelIndex,
@@ -192,7 +192,7 @@ fun DetailScreen(
                     .padding(end = 8.dp)
                     .height(50.dp)
             ) {
-                Text(text = "Buy Now", fontSize = 18.sp )
+                Text(text = "Đặt Hàng", fontSize = 18.sp )
             }
             IconButton(
                 onClick = onCartClick,
@@ -216,7 +216,7 @@ fun RatingBar(rating: Double){
     Row (verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(top = 16.dp)){
         Text(
-            text = "Select Model",
+            text = "Lựa chọn dòng sản phẩm",
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f)
         )
@@ -227,10 +227,11 @@ fun RatingBar(rating: Double){
             modifier = Modifier.padding(end = 8.dp)
         )
 
-        Text(text = "$rating Rating", style = MaterialTheme.typography.bodyMedium)
+        Text(text = "$rating Đánh Giá", style = MaterialTheme.typography.bodyMedium)
     }
 }
 
+//Các dòng mặt hàng sản phẩm
 @Composable
 fun ModelSelector(models: List<String>,
                   selectedModeIndex: Int,

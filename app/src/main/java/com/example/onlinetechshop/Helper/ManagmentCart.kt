@@ -22,7 +22,7 @@ class ManagmentCart(private val context: Context, private val userId: String) {
             listFood.add(item)
         }
         tinyDB.putListObject(cartKey, listFood) // ✅ dùng key riêng
-        Toast.makeText(context, "Added to your Cart", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Đã Thêm Sản Phẩm Vào Giỏ Hàng", Toast.LENGTH_SHORT).show()
     }
 
     fun getListCart(): ArrayList<ItemsModel> {

@@ -77,7 +77,7 @@ private fun CartScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .constrainAs (cartTxt){ centerTo(parent) },
-                text = "Your Cart",
+                text = "Giỏ Hàng Của Bạn",
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Bold,
                 fontSize = 25.sp
@@ -97,7 +97,7 @@ private fun CartScreen(
                 )
         }
         if(cartItems.isEmpty()){
-            Text(text = "Cart Is Empty",
+            Text(text = "Bạn Chưa Thêm Sản Phẩm",
                 modifier = Modifier.align(Alignment.CenterHorizontally))
         }else{
             CartList(
@@ -129,7 +129,7 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
             .padding(top = 16.dp)
         ){
             Text(
-                text = "Item Total: ",
+                text = "Tổng Sản Phẩm: ",
                 Modifier.weight(1f),
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
@@ -142,7 +142,7 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
             .padding(top = 16.dp)
         ){
             Text(
-                text = "Tax: ",
+                text = "Thuế: ",
                 Modifier.weight(1f),
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
@@ -155,7 +155,7 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
             .padding(top = 16.dp, bottom = 16.dp)
         ){
             Text(
-                text = "Delivery : ",
+                text = "Phí Vận Chuyển : ",
                 Modifier.weight(1f),
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
@@ -175,7 +175,7 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
             .padding(top = 16.dp)
         ){
             Text(
-                text = "Total : ",
+                text = "Tổng Tiền : ",
                 Modifier.weight(1f),
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
@@ -193,7 +193,7 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
                 .height(50.dp)
         ) {
             Text(
-                text = "Check Out",
+                text = "Đặt Hàng",
                 fontSize = 18.sp,
                 color = Color.White
             )

@@ -287,6 +287,7 @@ fun CategoryList(categories: SnapshotStateList<CategoryModel>) {
                 isSelected = selectedIndex == index,
                 onItemClick ={
                     selectedIndex = index
+                    //Hiển thị
                     Handler(Looper.getMainLooper()).postDelayed({
                         val intent = Intent(context, ListItemsActivity::class.java).apply {
                             putExtra("id",categories[index].id.toLong()) //id của mình là kiểu Long
@@ -300,7 +301,7 @@ fun CategoryList(categories: SnapshotStateList<CategoryModel>) {
 }
 
 
-
+//Danh sách loại sản phẩm
 @Composable
 fun CategoryItem(item:CategoryModel, isSelected:Boolean, onItemClick:() -> Unit) {
     Row (modifier = Modifier
@@ -382,6 +383,7 @@ fun AutoSlidingCarousel(modifier: Modifier = Modifier,
 }
 
 @Composable
+//Hiển thị một dãy các chấm tròn
 fun DotIndicator(
     modifier: Modifier = Modifier,
     totalDots:Int,
@@ -444,7 +446,7 @@ fun SectionTitle(title:String, actionText:String){
         )
     }
 }
-
+//Thanh điều hướng bên dưới
 @Composable
 fun BottomMenu(modifier: Modifier,onItemClick: () -> Unit,onProfileClick: () -> Unit){
     Row (modifier = modifier
@@ -454,11 +456,11 @@ fun BottomMenu(modifier: Modifier,onItemClick: () -> Unit,onProfileClick: () -> 
         ),
     horizontalArrangement = Arrangement.SpaceAround
     ){
-        BottomMenuItem(icon = painterResource(R.drawable.btn_1), text = "Explorer")
-        BottomMenuItem(icon = painterResource(R.drawable.btn_2), text = "Cart", onItemClick = onItemClick)
-        BottomMenuItem(icon = painterResource(R.drawable.btn_3), text = "Favorite")
-        BottomMenuItem(icon = painterResource(R.drawable.btn_4), text = "Orders")
-        BottomMenuItem(icon = painterResource(R.drawable.btn_5), text = "Profile", onItemClick = onProfileClick)
+        BottomMenuItem(icon = painterResource(R.drawable.btn_1), text = "Khám Phá")
+        BottomMenuItem(icon = painterResource(R.drawable.btn_2), text = "Giỏ Hàng", onItemClick = onItemClick)
+        BottomMenuItem(icon = painterResource(R.drawable.btn_3), text = "Yêu Thích")
+        BottomMenuItem(icon = painterResource(R.drawable.btn_4), text = "Đơn Hàng")
+        BottomMenuItem(icon = painterResource(R.drawable.btn_5), text = "Tài Khoản", onItemClick = onProfileClick)
     }
 }
 

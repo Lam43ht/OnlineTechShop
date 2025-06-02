@@ -50,7 +50,7 @@ class MainViewModel:ViewModel() {
         })
     }
 
-
+    //Từng sản phẩm
     fun loadRecommended(){
         val Ref=firebaseDatabase.getReference("Items")
         val query: Query = Ref.orderByChild("showRecommended").equalTo(true)
@@ -93,6 +93,7 @@ class MainViewModel:ViewModel() {
             
         })
     }
+    //Loại sản phẩm
     fun loadCategory(){
         val Ref = firebaseDatabase.getReference("Category")
         Ref.addValueEventListener(object :ValueEventListener{
