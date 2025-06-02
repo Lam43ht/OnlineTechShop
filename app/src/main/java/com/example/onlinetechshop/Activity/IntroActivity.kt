@@ -35,6 +35,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.onlinetechshop.R
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import com.example.onlinetechshop.pages.AuthActivity
 
 class IntroActivity : ComponentActivity() {
@@ -83,9 +86,22 @@ fun IntroScreen( onClick: () -> Unit={}) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = stringResource(id = R.string.intro_title),
+            /*text = stringResource(id = R.string.intro_title),
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
+            lineHeight = 32.sp*/
+            text = buildAnnotatedString {
+                withStyle(style = SpanStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold)) {
+                    append("Chào Mừng Đến Với\n")
+                }
+                withStyle(style = SpanStyle(color = Color(0xFF39C7A5), fontSize = 26.sp, fontWeight = FontWeight.Bold)) {
+                    append("Cửa Hàng Công Nghệ OneTech\n")
+                }
+                withStyle(style = SpanStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold)) {
+                    append("Thông Tin Về Sản Phẩm\nCông Nghệ")
+                }
+            },
             textAlign = TextAlign.Center,
             lineHeight = 32.sp
         )
@@ -115,10 +131,10 @@ fun IntroScreen( onClick: () -> Unit={}) {
             )
         }
 
-        Text(
+        /*Text(
             text = stringResource(id = R.string.sign),
             textAlign = TextAlign.Center,
             fontSize = 18.sp
-        )
+        )*/
     }
 }

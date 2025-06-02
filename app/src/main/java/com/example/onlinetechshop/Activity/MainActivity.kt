@@ -186,7 +186,7 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
                     }
                     Row {
                         Image(
-                            painter = painterResource(R.drawable.fav_icon),
+                            painter = painterResource(R.drawable.bell_icon),
                             contentDescription = "",
                         )
                         Spacer(modifier = Modifier.width(16.dp))

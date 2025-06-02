@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">OnlineTechShop</string>
     <string name="intro_title">
-        Chào Mừng Đến Với \n<font color="#39c7a5">Cửa Hàng Công Nghệ OneTech</font>\n Thông Tin Về Sản Phẩm \n Công Nghệ
+        Chào Mừng Đến Với\nCửa Hàng Công Nghệ OneTech\nThông Tin Về Sản Phẩm\nCông Nghệ
     </string>
-    <string name="intro_sub_title">Đăng nhập để khám phá loạt các sản phẩm số mới nhất.
-        Chưa có tài khoản? Đăng ký ngay bây giờ và tận hưởng trải nghiệm mua sắm hoàn hảo.</string>
+    <string name="intro_sub_title">Hãy bắt đầu để khám phá loạt các sản phẩm số mới nhất.
+         Đăng nhập ngay bây giờ và tận hưởng trải nghiệm mua sắm hoàn hảo.</string>
     <string name="letgo">Hãy Bắt Đầu</string>
     <string name="sign">Bạn đã có tài khoản chưa? Đăng Ký</string>
 </resources>
