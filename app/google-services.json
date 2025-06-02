@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "772010738481",
+    "project_id": "onlinetechnologyshop-5134f",
+    "storage_bucket": "onlinetechnologyshop-5134f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:772010738481:android:6e4412f48e11d274d3a610",
+        "android_client_info": {
+          "package_name": "com.example.onlinetechshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpVGvp8HMCqST6xEO7JRvQZFEitLXjIJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
