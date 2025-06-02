@@ -342,7 +342,7 @@ fun CartItem(
                     bottom.linkTo(parent.bottom)
                 }
                 .clickable{
-                    managmentCart.minusItem(cartItems, cartItems.indexOf(item), listener = object : ChangeNumberItemsListener{
+                    managmentCart.minusItem(cartItems, cartItems.indexOf(item), object : ChangeNumberItemsListener{
                         override fun onChanged() {
                             onItemsChange()
                         }

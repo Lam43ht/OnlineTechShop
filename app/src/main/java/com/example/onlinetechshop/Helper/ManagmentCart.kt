@@ -36,7 +36,7 @@ class ManagmentCart(private val context: Context, private val userId: String) {
         } else {
             listFood[position].numberIncart--
         }
-        tinyDB.putListObject("CartList", ArrayList(listFood))
+        tinyDB.putListObject(cartKey, ArrayList(listFood)) // ✅ dùng key riêng
         listener.onChanged()
     }
 
