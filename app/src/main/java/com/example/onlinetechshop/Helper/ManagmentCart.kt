@@ -10,20 +10,23 @@ class ManagmentCart(private val context: Context, private val userId: String) {
 
     private val tinyDB = TinyDB(context)
     private val cartKey = "CartList_$userId" // ✅ key riêng cho từng người dùng
-
     fun insertItem(item: ItemsModel) {
         var listFood = getListCart()
-        val existAlready = listFood.any { it.title == item.title }
-        val index = listFood.indexOfFirst { it.title == item.title }
 
-        if (existAlready) {
-            listFood[index].numberIncart = item.numberIncart
+        val index = listFood.indexOfFirst {
+            it.title == item.title && it.model == item.model
+        }
+
+        if (index != -1) {
+            listFood[index].numberIncart += item.numberIncart
         } else {
             listFood.add(item)
         }
-        tinyDB.putListObject(cartKey, listFood) // ✅ dùng key riêng
+
+        tinyDB.putListObject(cartKey, listFood)
         Toast.makeText(context, "Đã Thêm Sản Phẩm Vào Giỏ Hàng", Toast.LENGTH_SHORT).show()
     }
+
 
     fun getListCart(): ArrayList<ItemsModel> {
         //return tinyDB.getListObject("CartList") ?: arrayListOf()
@@ -53,5 +56,8 @@ class ManagmentCart(private val context: Context, private val userId: String) {
             fee += item.price * item.numberIncart
         }
         return fee
+    }
+    fun clearCart() {
+        tinyDB.putListObject(cartKey, arrayListOf())
     }
 }

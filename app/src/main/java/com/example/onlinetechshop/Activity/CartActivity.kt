@@ -1,6 +1,7 @@
 package com.example.onlinetechshop.Activity
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -17,9 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -43,7 +48,9 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import coil.compose.rememberAsyncImagePainter
 import com.example.onlinetechshop.Helper.ChangeNumberItemsListener
 import com.example.onlinetechshop.Model.ItemsModel
+import com.example.onlinetechshop.Model.OrderModel
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 
 class CartActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,6 +70,11 @@ private fun CartScreen(
 ){
     val cartItems = remember { mutableStateListOf<ItemsModel>().apply { addAll(managmentCart.getListCart()) } }
     val tax = remember { mutableStateOf(0.0) }
+    val showDialog = remember { mutableStateOf(false) }
+    val receiverName = remember { mutableStateOf("") }
+    val phoneNumber = remember { mutableStateOf("") }
+    val address = remember { mutableStateOf("") }
+    val context = LocalContext.current
     LaunchedEffect(cartItems) {
         calculatorCart(managmentCart, tax)
     }
@@ -111,15 +123,35 @@ private fun CartScreen(
             CartSummary(
                 itemTotal = managmentCart.getTotalFee(),
                 tax = tax.value,
-                delivery = 10.0
+                delivery = 10.0,
+                cartItems = cartItems,
+                managmentCart = managmentCart,
+                onPlaceOrderClick = { showDialog.value = true }
+            )
+        }
+        if (showDialog.value) {
+            ShippingInfoDialog(
+                onDismiss = { showDialog.value = false },
+                onConfirm = { name, phone, address ->
+                    placeOrder(name, phone, address, cartItems, managmentCart, context)
+                    showDialog.value = false
+                }
             )
         }
     }
 }
 
 @Composable
-fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
-    val total = itemTotal+tax+delivery
+fun CartSummary(itemTotal: Double,
+                tax: Double,
+                delivery: Double,
+                cartItems: SnapshotStateList<ItemsModel>,
+                managmentCart: ManagmentCart,
+                onPlaceOrderClick: () -> Unit
+) {
+    val total = itemTotal + tax + delivery
+    val showDialog = remember { mutableStateOf(false) }
+    val context = LocalContext.current
     Column (modifier = Modifier
         .fillMaxWidth()
         .padding(top = 16.dp)
@@ -182,9 +214,9 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
             )
             Text(text = "$$total")
         }
-
+        // ✅ Nút Đặt Hàng mở dialog
         Button(
-            onClick = {},
+            onClick = onPlaceOrderClick,
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.green)),
             modifier = Modifier
@@ -200,12 +232,75 @@ fun CartSummary(itemTotal: Double, tax: Double, delivery: Double) {
         }
     }
 }
+@Composable
+fun ShippingInfoDialog(
+    onDismiss: () -> Unit,
+    onConfirm: (String, String, String) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var address by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(onClick = {
+                if (name.isNotBlank() && phone.isNotBlank() && address.isNotBlank()) {
+                    onConfirm(name, phone, address)
+                }
+            }) {
+                Text("Xác nhận")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Huỷ") }
+        },
+        title = { Text("Thông Tin Giao Hàng") },
+        text = {
+            Column {
+                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Họ tên") })
+                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text("Số điện thoại") }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone))
+                OutlinedTextField(value = address, onValueChange = { address = it }, label = { Text("Địa chỉ") })
+            }
+        }
+    )
+}
 
 fun calculatorCart(managmentCart: ManagmentCart, tax: MutableState<Double>){
     val percentTax = 0.02
     tax.value = Math.round((managmentCart.getTotalFee()*percentTax)*100)/100.0
 }
 
+fun placeOrder(
+    name: String,
+    phone: String,
+    address: String,
+    cartItems: List<ItemsModel>,
+    managmentCart: ManagmentCart,
+    context: android.content.Context
+) {
+    val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
+    val total = cartItems.sumOf { it.price * it.numberIncart }
+    val orderId = "ORDER_${System.currentTimeMillis()}"
+
+    val order = OrderModel(
+        orderId = orderId,
+        userId = userId,
+        items = cartItems,
+        totalPrice = total,
+        shippingName = name,
+        shippingPhone = phone,
+        shippingAddress = address
+    )
+
+    val db = FirebaseDatabase.getInstance().getReference("Orders").child(userId)
+    db.child(orderId).setValue(order).addOnSuccessListener {
+        managmentCart.clearCart()
+        Toast.makeText(context, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+    }.addOnFailureListener {
+        Toast.makeText(context, "Lỗi đặt hàng!", Toast.LENGTH_SHORT).show()
+    }
+}
 @Composable
 fun CartList(
     cartItems: SnapshotStateList<ItemsModel>,
@@ -236,7 +331,7 @@ fun CartItem(
             .fillMaxWidth()
             .padding(top = 8.dp, bottom = 8.dp)
     ){
-        val (pic, titleTxt, feeEachTime, totalEachItem, Quantity) = createRefs()
+        val (pic,modelTxt, titleTxt, feeEachTime, totalEachItem, Quantity) = createRefs()
         Image(
             painter = rememberAsyncImagePainter(item.picUrl[0]),
             contentDescription = null,
@@ -251,7 +346,17 @@ fun CartItem(
                     bottom.linkTo(parent.bottom)
                 }
         )
-
+        Text(
+            text = "Loại: ${item.model.firstOrNull() ?: "Không rõ"}",
+            fontSize = 12.sp,
+            color = Color.Gray,
+            modifier = Modifier
+                .constrainAs(modelTxt) {
+                    end.linkTo(parent.end)
+                    top.linkTo(parent.top)
+                }
+                .padding(end = 8.dp, top = 8.dp)
+        )
         Text(
             text = item.title,
             modifier = Modifier

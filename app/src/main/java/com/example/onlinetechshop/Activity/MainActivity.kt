@@ -1,7 +1,11 @@
-@file:Suppress("DEPRECATION")
-
 package com.example.onlinetechshop.Activity
 
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -19,9 +23,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,10 +38,13 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.Icon
 import androidx.compose.material.ModalDrawer
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
@@ -84,7 +93,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.PagerState
 import com.google.firebase.auth.FirebaseAuth
 import okhttp3.internal.http2.Http2Reader
-
+import androidx.compose.material3.IconButton
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -95,20 +104,29 @@ class MainActivity : BaseActivity() {
         setContent {
             val context = LocalContext.current
         MainActivityScreen(
-            //startActivity(Intent(this, CartActivity::class.java))
             userName = userEmail,
             onCartClick = {
                 startActivity(Intent(context, CartActivity::class.java))
             },
             onProfileClick = {
                 startActivity(Intent(context, ProfileActivity::class.java)) // hoặc màn hình khác bạn muốn
-            })
+            },
+            onLookClick = {
+                startActivity(Intent(context, SearchActivity::class.java))
+            },
+            onLoveClick = {
+                startActivity(Intent(context, LoveActivity::class.java))
+            },
+            onFollowClick = {
+                startActivity(Intent(context, FollowActivity::class.java))
+            },
+            )
         }
     }
 }
 @Composable
 //@Preview
-fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileClick: () -> Unit = {}){
+fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileClick: () -> Unit = {}, onLookClick: () -> Unit = {},onLoveClick: () -> Unit, onFollowClick: () -> Unit){
     val viewModel = MainViewModel()
     val banners = remember { mutableStateListOf<SliderModel>()}
     val categories = remember { mutableStateListOf<CategoryModel>()}
@@ -116,7 +134,7 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
     var showBannerLoading  by remember { mutableStateOf(true)}
     var showCategoryLoading  by remember { mutableStateOf(true)}
     var showRecommendedLoading  by remember { mutableStateOf(true)}
-
+    var showSearchDialog by remember { mutableStateOf(false) }
 
     //Banner
     LaunchedEffect(Unit) {
@@ -190,9 +208,13 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
                             contentDescription = "",
                         )
                         Spacer(modifier = Modifier.width(16.dp))
+
                         Image(
                             painter = painterResource(R.drawable.search_icon),
-                            contentDescription = "",
+                            contentDescription = "Tìm kiếm",
+                            modifier = Modifier.clickable {
+                                showSearchDialog = true
+                            }
                         )
                     }
                 }
@@ -256,6 +278,10 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
             }
 
         }
+        // ✅ Gọi dialog ngay ngoài ConstraintLayout
+        if (showSearchDialog) {
+            SearchDialog(onDismiss = { showSearchDialog = false })
+        }
         BottomMenu(
             modifier = Modifier
                 .fillMaxWidth()
@@ -263,12 +289,136 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
                     bottom.linkTo(anchor = parent.bottom)
                 },
             onItemClick = onCartClick,
-            onProfileClick = onProfileClick
+            onProfileClick = onProfileClick,
+            onLookClick = onLookClick,
+            onLoveClick = onLoveClick,
+            onFollowClick = onFollowClick
         )
 
     }
 
 }
+@Composable
+fun SearchDialog(
+    onDismiss: () -> Unit,
+    viewModel: MainViewModel = MainViewModel()
+) {
+    val allItems = remember { mutableStateListOf<ItemsModel>() }
+    var query by remember { mutableStateOf("") }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAllItems()
+        viewModel.allItems.observeForever {
+            allItems.clear()
+            allItems.addAll(it)
+        }
+    }
+
+    val filtered = if (query.isBlank()) listOf()
+    else allItems.filter { it.title.contains(query, ignoreCase = true) }
+
+    val context = LocalContext.current
+
+    Dialog(onDismissRequest = onDismiss) {
+        // Không dùng fillMaxSize để tránh full màn
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                //.padding(horizontal = 16.dp)
+        ){
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .heightIn(max = 500.dp)
+                    .padding(top = 40.dp),
+                color = Color.White,
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    // ✅ Thanh tìm kiếm trên cùng (không scroll)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            placeholder = { Text("🔍 Tìm sản phẩm...") },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp),
+                            singleLine = true
+                        )
+                        IconButton(onClick = onDismiss) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Đóng",
+                                tint = Color.Gray
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // ✅ Kết quả có thể scroll
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = false) // chỉ chiếm chiều cao cần thiết
+                    ) {
+                        if (query.isNotBlank()) {
+                            val results = filtered
+                            if (results.isEmpty()) {
+                                item {
+                                    Text("❌ Không tìm thấy sản phẩm", color = Color.Red)
+                                }
+                            } else {
+                                items(results) { item ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                onDismiss()
+                                                val intent = Intent(context, DetailActivity::class.java)
+                                                intent.putExtra("object", item)
+                                                context.startActivity(intent)
+                                            }
+                                            .padding(vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        AsyncImage(
+                                            model = item.picUrl.firstOrNull(),
+                                            contentDescription = item.title,
+                                            modifier = Modifier.size(48.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Column {
+                                            Text(item.title, fontWeight = FontWeight.Bold)
+                                            Text("💵 ${item.price} đ", fontSize = 12.sp, color = Color.Gray)
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            item {
+                                Text("🔎 Hãy nhập từ khoá để tìm sản phẩm...", color = Color.Gray)
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+
 
 @Composable
 fun CategoryList(categories: SnapshotStateList<CategoryModel>) {
@@ -448,7 +598,7 @@ fun SectionTitle(title:String, actionText:String){
 }
 //Thanh điều hướng bên dưới
 @Composable
-fun BottomMenu(modifier: Modifier,onItemClick: () -> Unit,onProfileClick: () -> Unit){
+fun BottomMenu(modifier: Modifier,onItemClick: () -> Unit,onProfileClick: () -> Unit, onLookClick: () -> Unit, onLoveClick: () -> Unit, onFollowClick: () -> Unit){
     Row (modifier = modifier
         .padding(start = 16.dp, end = 16.dp, bottom = 32.dp)
         .background(colorResource(R.color.green),
@@ -456,10 +606,10 @@ fun BottomMenu(modifier: Modifier,onItemClick: () -> Unit,onProfileClick: () -> 
         ),
     horizontalArrangement = Arrangement.SpaceAround
     ){
-        BottomMenuItem(icon = painterResource(R.drawable.btn_1), text = "Khám Phá")
+        BottomMenuItem(icon = painterResource(R.drawable.btn_1), text = "Tìm Kiếm", onItemClick = onLookClick)
         BottomMenuItem(icon = painterResource(R.drawable.btn_2), text = "Giỏ Hàng", onItemClick = onItemClick)
-        BottomMenuItem(icon = painterResource(R.drawable.btn_3), text = "Yêu Thích")
-        BottomMenuItem(icon = painterResource(R.drawable.btn_4), text = "Đơn Hàng")
+        BottomMenuItem(icon = painterResource(R.drawable.btn_3), text = "Yêu Thích", onItemClick = onLoveClick)
+        BottomMenuItem(icon = painterResource(R.drawable.btn_4), text = "Đơn Hàng", onItemClick = onFollowClick)
         BottomMenuItem(icon = painterResource(R.drawable.btn_5), text = "Tài Khoản", onItemClick = onProfileClick)
     }
 }

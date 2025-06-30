@@ -6,6 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -20,8 +22,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.navigation.NavController
@@ -42,19 +48,53 @@ class ProfileActivity : ComponentActivity() {
                     // Quay lại màn hình đăng nhập sau khi đăng xuất
                     startActivity(Intent(this, AuthActivity::class.java))
                     finish() // Đóng ProfileActivity
-                }
+                },
+                onBackClick = {finish()}
             )
         }
     }
 }
 @Composable
 fun ProfileScreen(authViewModel: AuthViewModel,
-                  onSignOut: () -> Unit){
+                  onSignOut: () -> Unit,
+                  onBackClick: () -> Unit){
     val authState = authViewModel.authState.observeAsState()
     // Khi người dùng bị "Unauthenticated", gọi callback để quay lại màn login
     LaunchedEffect(authState.value) {
         if (authState.value is AuthState.Unauthenticated) {
             onSignOut()
+        }
+    }
+    Column (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        ConstraintLayout(modifier = Modifier.padding(top = 8.dp)) {
+            val (backBtn, cartTxt) = createRefs()
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .constrainAs(cartTxt) { centerTo(parent) },
+                text = "Thông Tin Tài Khoản",
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                fontSize = 25.sp
+            )
+
+            Image(
+                painter = painterResource(R.drawable.back),
+                contentDescription = null,
+                modifier = Modifier
+                    .clickable {
+                        onBackClick()
+                    }
+                    .constrainAs(backBtn) {
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                    }
+            )
         }
     }
     Column (modifier = Modifier

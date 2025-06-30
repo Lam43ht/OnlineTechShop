@@ -23,10 +23,19 @@ class MainViewModel:ViewModel() {
     private val _category= MutableLiveData<MutableList<CategoryModel>>()
     private val _banner= MutableLiveData<List<SliderModel>>()
     private val _recommended= MutableLiveData<MutableList<ItemsModel>>()
+    val allItems = MutableLiveData<List<ItemsModel>>()
 
     val banners:LiveData<List<SliderModel>> = _banner
     val categories:LiveData<MutableList<CategoryModel>> = _category
     val recommended: LiveData<MutableList<ItemsModel>> = _recommended
+
+    fun loadAllItems() {
+        val ref = FirebaseDatabase.getInstance().getReference("Items")
+        ref.get().addOnSuccessListener { snapshot ->
+            val list = snapshot.children.mapNotNull { it.getValue(ItemsModel::class.java) }
+            allItems.value = list
+        }
+    }
 
     fun loadFiltered(id: Long){
         val Ref=firebaseDatabase.getReference("Items")
