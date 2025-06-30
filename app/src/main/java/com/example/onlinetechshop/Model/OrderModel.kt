@@ -11,6 +11,6 @@ data class OrderModel(
     val shippingName: String = "",
     val shippingPhone: String = "",
     val shippingAddress: String = "",
-    val status: String = "Đang xử lý", // hoặc enum cũng được
+    val status: String = "Chờ xử lý", // hoặc enum cũng được
     val timestamp: Long = System.currentTimeMillis()
 )
