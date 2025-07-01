@@ -100,7 +100,6 @@ import com.example.onlinetechshop.Helper.formatVND
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //val authViewModel : AuthViewModel by viewModels()
         val currentUser = FirebaseAuth.getInstance().currentUser
         val userEmail = currentUser?.email ?: "Khách"
         setContent {
@@ -111,7 +110,7 @@ class MainActivity : BaseActivity() {
                 startActivity(Intent(context, CartActivity::class.java))
             },
             onProfileClick = {
-                startActivity(Intent(context, ProfileActivity::class.java)) // hoặc màn hình khác bạn muốn
+                startActivity(Intent(context, ProfileActivity::class.java))
             },
             onLookClick = {
                 startActivity(Intent(context, SearchActivity::class.java))
@@ -127,10 +126,13 @@ class MainActivity : BaseActivity() {
     }
 }
 @Composable
-//@Preview
-fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileClick: () -> Unit = {}, onLookClick: () -> Unit = {},onLoveClick: () -> Unit, onFollowClick: () -> Unit){
-    //val viewModel = MainViewModel()
-    val viewModel: MainViewModel = viewModel() // ✅ Đúng cách
+fun MainActivityScreen(userName: String ,
+                       onCartClick:() -> Unit = {},
+                       onProfileClick: () -> Unit = {},
+                       onLookClick: () -> Unit = {},
+                       onLoveClick: () -> Unit,
+                       onFollowClick: () -> Unit){
+    val viewModel: MainViewModel = viewModel() // Truy cập dữ liệu
     val banners = remember { mutableStateListOf<SliderModel>()}
     val categories = remember { mutableStateListOf<CategoryModel>()}
     val recommended = remember { mutableStateListOf<ItemsModel>()}
@@ -138,8 +140,7 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
     var showCategoryLoading  by remember { mutableStateOf(true)}
     var showRecommendedLoading  by remember { mutableStateOf(true)}
     var showSearchDialog by remember { mutableStateOf(false) }
-    val productList = remember { mutableStateListOf<ItemsModel>() }
-    val context = LocalContext.current
+
     //Banner
     LaunchedEffect(Unit) {
         viewModel.loadBanner()
@@ -159,10 +160,8 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
             showCategoryLoading = false
         }
     }
-
     //Recommended
     LaunchedEffect(Unit) {
-        //viewModel.loadRecommended()
         viewModel.observeRecommendedRealtime()
         viewModel.recommended.observeForever {
             recommended.clear()
@@ -187,6 +186,7 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
                 }
 
         ){
+            //Các phần tử của trang
             item{
                 Row (
                     modifier = Modifier
@@ -283,7 +283,7 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
             }
 
         }
-        // ✅ Gọi dialog ngay ngoài ConstraintLayout
+        // Gọi dialog ngay ngoài ConstraintLayout
         if (showSearchDialog) {
             SearchDialog(onDismiss = { showSearchDialog = false })
         }
@@ -325,18 +325,15 @@ fun SearchDialog(
     val context = LocalContext.current
 
     Dialog(onDismissRequest = onDismiss) {
-        // Không dùng fillMaxSize để tránh full màn
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                //.padding(horizontal = 16.dp)
         ){
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .heightIn(max = 500.dp)
-                    .padding(top = 40.dp),
+                    .heightIn(max = 500.dp),
                 color = Color.White,
                 shape = RoundedCornerShape(16.dp)
             ) {
@@ -345,7 +342,7 @@ fun SearchDialog(
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    // ✅ Thanh tìm kiếm trên cùng (không scroll)
+                    // Thanh tìm kiếm trên cùng (không scroll)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -371,7 +368,7 @@ fun SearchDialog(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // ✅ Kết quả có thể scroll
+                    //  Kết quả có thể scroll
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -422,8 +419,6 @@ fun SearchDialog(
         }
     }
 }
-
-
 
 @Composable
 fun CategoryList(categories: SnapshotStateList<CategoryModel>) {

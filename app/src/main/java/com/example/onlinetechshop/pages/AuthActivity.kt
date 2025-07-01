@@ -14,7 +14,6 @@ import com.example.onlinetechshop.ViewModel.AuthViewModel
 
 class AuthActivity : ComponentActivity() {
     private val authViewModel by viewModels<AuthViewModel>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

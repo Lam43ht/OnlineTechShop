@@ -45,10 +45,9 @@ class IntroActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MaterialTheme { // Nên dùng theme custom thay vì MaterialTheme
+            MaterialTheme {
                 IntroScreen(
                     onClick = {
-                        // Sửa thành startActivity rõ ràng
                         startActivity(Intent(this@IntroActivity, AuthActivity::class.java))
                         finish()
                     }

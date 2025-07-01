@@ -82,10 +82,18 @@ private fun CartScreen(
     val tax = remember { mutableStateOf(0.0) }
     val showDialog = remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
     LaunchedEffect(cartItems) {
         calculatorCart(managmentCart, tax)
     }
+    LaunchedEffect(Unit) {
+        syncCartWithFirebase(cartItems, managmentCart) {
+            cartItems.clear()
+            cartItems.addAll(managmentCart.getListCart())
+            calculatorCart(managmentCart, tax)
+        }
+    }
+
+
     Column (
         modifier = Modifier
             .fillMaxSize()
@@ -378,31 +386,79 @@ fun CartItem(
             .padding(top = 8.dp, bottom = 8.dp)
     ){
         val (pic,modelTxt, titleTxt, feeEachTime, totalEachItem, Quantity) = createRefs()
-        Image(
-            painter = rememberAsyncImagePainter(item.picUrl[0]),
-            contentDescription = null,
+        val selectedModel = item.model.firstOrNull()
+        val stock = item.stockPerModel[selectedModel] ?: 0
+        val context = LocalContext.current
+        val (deleteBtn) = createRefs()
+        Column(
             modifier = Modifier
-                .size(90.dp)
-                .background(colorResource(R.color.lightGrey),
-                    shape = RoundedCornerShape(10.dp))
-                .padding(8.dp)
-                .constrainAs (pic){
+                .width(90.dp)
+                .constrainAs(pic) {
                     start.linkTo(parent.start)
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
-                }
-        )
+                },
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(item.picUrl[0]),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(90.dp)
+                    .background(
+                        colorResource(R.color.lightGrey),
+                        shape = RoundedCornerShape(10.dp)
+                    )
+                    .padding(8.dp)
+            )
+            Text(
+                text = "Còn lại: $stock",
+                fontSize = 12.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
         Text(
             text = "Loại: ${item.model.firstOrNull() ?: "Không rõ"}",
             fontSize = 12.sp,
             color = Color.Gray,
             modifier = Modifier
                 .constrainAs(modelTxt) {
+                    top.linkTo(modelTxt.top, margin = (6).dp)
                     end.linkTo(parent.end)
-                    top.linkTo(parent.top)
                 }
                 .padding(end = 8.dp, top = 8.dp)
         )
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .size(30.dp)
+                .background(Color.Red, shape = RoundedCornerShape(6.dp))
+                .clickable {
+                    managmentCart.removeItem(
+                        cartItems,
+                        cartItems.indexOf(item),
+                        object : ChangeNumberItemsListener {
+                            override fun onChanged() {
+                                onItemsChange()
+                            }
+                        }
+                    )
+                }
+                .constrainAs(deleteBtn) {
+                    top.linkTo(modelTxt.top, margin = (26).dp) // ✅ Đẩy nút lên so với model
+                    end.linkTo(parent.end)
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "X",
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+        }
+
         Text(
             text = item.title,
             modifier = Modifier
@@ -466,12 +522,23 @@ fun CartItem(
                     bottom.linkTo(parent.bottom)
                 }
                 .clickable{
-                    managmentCart.plusItem(cartItems,cartItems.indexOf(item),
-                        object : ChangeNumberItemsListener{
-                            override fun onChanged() {
-                                onItemsChange()
+                    if (item.numberIncart < stock) {
+                        managmentCart.plusItem(
+                            cartItems,
+                            cartItems.indexOf(item),
+                            object : ChangeNumberItemsListener {
+                                override fun onChanged() {
+                                    onItemsChange()
+                                }
                             }
-                        })
+                        )
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Chỉ còn $stock sản phẩm cho lựa chọn này!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             ){
                 Text(
@@ -492,15 +559,18 @@ fun CartItem(
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
                 }
-                .clickable{
-                    managmentCart.minusItem(cartItems, cartItems.indexOf(item), object : ChangeNumberItemsListener{
-                        override fun onChanged() {
-                            onItemsChange()
-                        }
+                .clickable {
+                    managmentCart.minusItem(
+                        cartItems,
+                        cartItems.indexOf(item),
+                        object : ChangeNumberItemsListener {
+                            override fun onChanged() {
+                                onItemsChange()
+                            }
 
-                    })
-                }
-            ){
+                        })
+                })
+            {
                 Text(
                     text = "-",
                     color = Color.Black,
@@ -513,3 +583,48 @@ fun CartItem(
         }
     }
 }
+fun syncCartWithFirebase(
+    cartItems: SnapshotStateList<ItemsModel>,
+    managmentCart: ManagmentCart,
+    onItemsChange: (() -> Unit)? = null
+) {
+    val db = FirebaseDatabase.getInstance().reference
+
+    cartItems.forEachIndexed { index, item ->
+        val itemId = item.id ?: return@forEachIndexed
+        val model = item.model.firstOrNull() ?: return@forEachIndexed
+
+        db.child("Items").child(itemId).get().addOnSuccessListener { snapshot ->
+            val productData = snapshot.value as? Map<*, *> ?: return@addOnSuccessListener
+
+            val stockMap = productData["stockPerModel"] as? Map<*, *> ?: emptyMap<Any?, Any?>()
+            val totalQuantity = (productData["quantity"] as? Long)?.toInt() ?: 0
+            val updatedStock = (stockMap[model] as? Long)?.toInt() ?: 0
+
+            val convertedStockMap = HashMap<String, Int>()
+            for ((key, value) in stockMap) {
+                val keyStr = key as? String ?: continue
+                val valueInt = (value as? Long)?.toInt() ?: continue
+                convertedStockMap[keyStr] = valueInt
+            }
+
+            // Cập nhật item mới
+            val updatedItem = item.copy(
+                stockPerModel = convertedStockMap,
+                quantity = totalQuantity,
+                numberIncart = minOf(item.numberIncart, updatedStock) // tránh vượt stock
+            )
+
+            // Cập nhật trong list cart (UI list)
+            cartItems[index] = updatedItem
+
+            // Cập nhật trong TinyDB
+            managmentCart.updateCartItem(index, updatedItem)
+
+            // Gọi callback cập nhật UI tổng tiền, nếu có
+            onItemsChange?.invoke()
+        }
+    }
+}
+
+

@@ -41,7 +41,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -55,7 +54,6 @@ dependencies {
     implementation(libs.material)//v
     implementation(libs.androidx.activity)
     implementation(libs.androidx.benchmark.macro)
-    //implementation(libs.androidx.navigation.compose.jvmstubs)
     implementation(libs.firebase.auth.ktx)//v
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -75,8 +73,6 @@ dependencies {
     implementation("androidx.constraintlayout:constraintlayout-compose:1.1.0")
     implementation("androidx.compose.foundation:foundation:1.7.6")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.36.0")
-    /*implementation("androidx.compose.runtime:runtime-livedata") // Sẽ lấy phiên bản từ BOM
-    implementation("androidx.compose.foundation:foundation") // Sẽ lấy phiên bản từ BOM*/
     implementation("androidx.compose.ui:ui-tooling:1.3.3")
     implementation("androidx.compose.material3:material3:1.2.1")
     implementation("com.google.firebase:firebase-auth-ktx")

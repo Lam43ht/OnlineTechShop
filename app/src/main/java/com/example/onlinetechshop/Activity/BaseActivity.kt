@@ -11,7 +11,5 @@ open class BaseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         window.setFlags(FLAG_LAYOUT_NO_LIMITS, FLAG_LAYOUT_NO_LIMITS)
         enableEdgeToEdge()
-
-
     }
 }

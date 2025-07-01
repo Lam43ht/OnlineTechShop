@@ -100,6 +100,7 @@ class MainViewModel:ViewModel() {
 
         })
     }
+
     fun loadBanner(){
         val Ref=firebaseDatabase.getReference("Banner")
         Ref.addValueEventListener(object : ValueEventListener {
