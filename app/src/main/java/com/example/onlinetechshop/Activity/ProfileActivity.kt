@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -85,7 +86,7 @@ fun ProfileScreen(
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .constrainAs(titleTxt) { centerTo(parent) }
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 5.dp)
             )
 
             Image(painter = painterResource(R.drawable.back),
@@ -139,7 +140,7 @@ fun ProfileScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFD32F2F))
+            colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.green))
         ) {
             Text("🚪 Đăng xuất", color = Color.White, fontSize = 16.sp)
         }

@@ -1,6 +1,8 @@
 package com.example.onlinetechshop.Activity
 
 import android.os.Bundle
+import java.text.NumberFormat
+import java.util.Locale
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -26,6 +28,7 @@ import com.example.onlinetechshop.Model.OrderModel
 import com.example.onlinetechshop.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.example.onlinetechshop.Helper.formatVND
 
 class FollowActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -147,7 +150,7 @@ fun ExpandableOrderCard(order: OrderModel, userId: String) {
             Text("Tên người nhận: ${order.shippingName}")
             Text("SĐT: ${order.shippingPhone}")
             Text("Địa chỉ: ${order.shippingAddress}")
-            Text("Tổng tiền: ${order.totalPrice} đ", color = Color(0xFF2E7D32))
+            Text("Tổng tiền: ${formatVND(order.totalPrice)}", color = Color(0xFF2E7D32))
             Text(
                 "Trạng thái: ${order.status ?: "Chờ xử lý"}",
                 color = Color.Blue,
@@ -176,10 +179,10 @@ fun ExpandableOrderCard(order: OrderModel, userId: String) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(item.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                             Text("Model: ${item.model.firstOrNull() ?: "Không rõ"}", fontSize = 12.sp)
-                            Text("Giá: ${item.price} đ", fontSize = 12.sp, color = Color.Gray)
+                            Text("Giá: ${formatVND(item.price)}", fontSize = 12.sp, color = Color.Gray)
                             Text("Số lượng: ${item.numberIncart}", fontSize = 12.sp)
                             Text(
-                                text = "Tổng: ${(item.price * item.numberIncart)} đ",
+                                text = "Tổng: ${formatVND(item.price * item.numberIncart)}",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = Color(0xFF388E3C)
@@ -190,7 +193,7 @@ fun ExpandableOrderCard(order: OrderModel, userId: String) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                if (order.status != "Đã giao") {
+                if (order.status != "Đã giao" && order.status != "Đã huỷ") {
                     Button(
                         onClick = { showConfirmDialog = true },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red),
@@ -212,25 +215,49 @@ fun ExpandableOrderCard(order: OrderModel, userId: String) {
                     TextButton(
                         onClick = {
                             showConfirmDialog = false
-                            val db = FirebaseDatabase.getInstance()
-                                .getReference("Orders")
+                            val rootRef = FirebaseDatabase.getInstance().reference
+
+                            // 1. Hoàn lại tồn kho cho từng item
+                            for (item in order.items) {
+                                val modelName = item.model.firstOrNull() ?: continue
+                                val itemId = item.id ?: continue
+                                val productRef = rootRef.child("Items").child(itemId)
+
+                                // ✅ Hoàn lại stockPerModel
+                                productRef.child("stockPerModel").child(modelName).get()
+                                    .addOnSuccessListener { snapshot ->
+                                        val currentStock = snapshot.getValue(Int::class.java) ?: 0
+                                        productRef.child("stockPerModel").child(modelName)
+                                            .setValue(currentStock + item.numberIncart)
+                                    }
+
+                                // ✅ Hoàn lại quantity
+                                productRef.child("quantity").get()
+                                    .addOnSuccessListener { snapshot ->
+                                        val currentQty = snapshot.getValue(Int::class.java) ?: 0
+                                        productRef.child("quantity")
+                                            .setValue(currentQty + item.numberIncart)
+                                    }
+                            }
+
+                            // 2. Cập nhật trạng thái đơn hàng
+                            rootRef.child("Orders")
                                 .child(userId)
                                 .child(order.orderId)
-
-                            db.removeValue().addOnSuccessListener {
-                                Toast.makeText(
-                                    context,
-                                    "Đã huỷ và xoá đơn hàng ${order.orderId}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }.addOnFailureListener {
-                                Toast.makeText(context, "Huỷ đơn thất bại!", Toast.LENGTH_SHORT).show()
-                            }
+                                .child("status")
+                                .setValue("Đã huỷ")
+                                .addOnSuccessListener {
+                                    Toast.makeText(context, "✅ Đã huỷ đơn hàng và hoàn kho", Toast.LENGTH_SHORT).show()
+                                }
+                                .addOnFailureListener {
+                                    Toast.makeText(context, "❌ Lỗi khi huỷ đơn", Toast.LENGTH_SHORT).show()
+                                }
                         }
                     ) {
                         Text("Huỷ đơn", color = Color.Red)
                     }
-                },
+                }
+                ,
                 dismissButton = {
                     TextButton(onClick = { showConfirmDialog = false }) {
                         Text("Đóng")

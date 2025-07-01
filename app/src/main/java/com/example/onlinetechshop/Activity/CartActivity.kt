@@ -1,6 +1,10 @@
 package com.example.onlinetechshop.Activity
 
 import android.os.Bundle
+import java.text.NumberFormat
+import java.util.Locale
+import java.text.SimpleDateFormat
+import java.util.*
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -54,6 +58,7 @@ import com.example.onlinetechshop.Model.ItemsModel
 import com.example.onlinetechshop.Model.OrderModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import com.example.onlinetechshop.Helper.formatVND
 
 class CartActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,10 +79,8 @@ private fun CartScreen(
     val cartItems = remember { mutableStateListOf<ItemsModel>().apply { addAll(managmentCart.getListCart()) } }
     val tax = remember { mutableStateOf(0.0) }
     val showDialog = remember { mutableStateOf(false) }
-    val receiverName = remember { mutableStateOf("") }
-    val phoneNumber = remember { mutableStateOf("") }
-    val address = remember { mutableStateOf("") }
     val context = LocalContext.current
+    val currentDate = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(Date())
     LaunchedEffect(cartItems) {
         calculatorCart(managmentCart, tax)
     }
@@ -126,7 +129,7 @@ private fun CartScreen(
             CartSummary(
                 itemTotal = managmentCart.getTotalFee(),
                 tax = tax.value,
-                delivery = 10.0,
+                delivery = 10000.0,
                 cartItems = cartItems,
                 managmentCart = managmentCart,
                 onPlaceOrderClick = { showDialog.value = true }
@@ -153,8 +156,6 @@ fun CartSummary(itemTotal: Double,
                 onPlaceOrderClick: () -> Unit
 ) {
     val total = itemTotal + tax + delivery
-    val showDialog = remember { mutableStateOf(false) }
-    val context = LocalContext.current
     Column (modifier = Modifier
         .fillMaxWidth()
         .padding(top = 16.dp)
@@ -169,7 +170,7 @@ fun CartSummary(itemTotal: Double,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
             )
-            Text(text = "$$itemTotal")
+            Text(text = formatVND(itemTotal))
         }
 
         Row (modifier = Modifier
@@ -182,7 +183,7 @@ fun CartSummary(itemTotal: Double,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
             )
-            Text(text = "$$tax")
+            Text(text = formatVND(tax))
         }
 
         Row (modifier = Modifier
@@ -195,7 +196,7 @@ fun CartSummary(itemTotal: Double,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
             )
-            Text(text = "$$delivery")
+            Text(text = formatVND(delivery))
         }
         Box(
             Modifier
@@ -215,7 +216,7 @@ fun CartSummary(itemTotal: Double,
                 fontWeight = FontWeight.Bold,
                 color = colorResource(R.color.grey)
             )
-            Text(text = "$$total")
+            Text(text = formatVND(total))
         }
         // ✅ Nút Đặt Hàng mở dialog
         Button(
@@ -285,6 +286,9 @@ fun placeOrder(
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
     val total = cartItems.sumOf { it.price * it.numberIncart }
     val orderId = "ORDER_${System.currentTimeMillis()}"
+    // ✅ Định nghĩa ngày hiện tại
+    val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    val orderDate = sdf.format(Date())
 
     val order = OrderModel(
         orderId = orderId,
@@ -294,17 +298,47 @@ fun placeOrder(
         shippingName = name,
         shippingPhone = phone,
         shippingAddress = address,
-        status = "Đang xử lý"
+        status = "Chờ xử lý",
+        orderDate = orderDate
     )
 
-    val db = FirebaseDatabase.getInstance().getReference("Orders").child(userId)
-    db.child(orderId).setValue(order).addOnSuccessListener {
-        managmentCart.clearCart()
-        Toast.makeText(context, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
-    }.addOnFailureListener {
-        Toast.makeText(context, "Lỗi đặt hàng!", Toast.LENGTH_SHORT).show()
-    }
+    val db = FirebaseDatabase.getInstance().reference
+
+    // ✅ Ghi đơn hàng vào Firebase
+    db.child("Orders").child(userId).child(orderId).setValue(order)
+        .addOnSuccessListener {
+            // ✅ Cập nhật tồn kho sau khi đặt hàng
+            for (item in cartItems) {
+                val modelName = item.model.firstOrNull() ?: continue
+                val itemId = item.id ?: continue  // ⚠️ Đảm bảo ID tồn tại
+                val productRef = db.child("Items").child(itemId)
+
+                // ✅ Cập nhật tồn kho theo model
+                productRef.child("stockPerModel").child(modelName).get()
+                    .addOnSuccessListener { stockSnap ->
+                        val currentStock = stockSnap.getValue(Int::class.java) ?: 0
+                        val updatedStock = (currentStock - item.numberIncart).coerceAtLeast(0)
+                        productRef.child("stockPerModel").child(modelName).setValue(updatedStock)
+                    }
+
+                // ✅ Cập nhật tổng quantity
+                productRef.child("quantity").get().addOnSuccessListener { qtySnap ->
+                    val currentQty = qtySnap.getValue(Int::class.java) ?: 0
+                    val updatedQty = (currentQty - item.numberIncart).coerceAtLeast(0)
+                    productRef.child("quantity").setValue(updatedQty)
+                }
+            }
+
+            managmentCart.clearCart()
+            Toast.makeText(context, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+        }
+        .addOnFailureListener {
+            Toast.makeText(context, "Lỗi đặt hàng!", Toast.LENGTH_SHORT).show()
+        }
 }
+
+
+
 @Composable
 fun CartList(
     cartItems: SnapshotStateList<ItemsModel>,
@@ -370,7 +404,7 @@ fun CartItem(
                 }
                 .padding(start = 8.dp, top = 8.dp)
         )
-        Text(text = "$${item.price}", color = colorResource(R.color.green),
+        Text(text = formatVND(item.price), color = colorResource(R.color.green),
             modifier = Modifier
                 .constrainAs (feeEachTime){
                     start.linkTo(titleTxt.start)
@@ -380,7 +414,7 @@ fun CartItem(
             )
 
         Text(
-            text = "$${item.numberIncart*item.price}",
+            text = formatVND(item.numberIncart * item.price),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier

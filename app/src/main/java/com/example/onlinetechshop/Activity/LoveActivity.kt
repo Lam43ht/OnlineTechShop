@@ -88,7 +88,7 @@ fun LoveScreen(managmentFavorite: ManagmentFavorite, onBackClick: () -> Unit) {
         }
 
         if (favoriteItems.isEmpty()) {
-            Text("Bạn chưa thêm sản phẩm nào vào yêu thích.")
+            Text(text = "Bạn chưa thêm sản phẩm nào vào yêu thích.", modifier = Modifier.align(Alignment.CenterHorizontally))
         } else {
             LazyColumn {
                 items(favoriteItems) { item ->

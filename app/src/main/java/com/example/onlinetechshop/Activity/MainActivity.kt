@@ -1,6 +1,7 @@
 package com.example.onlinetechshop.Activity
 
 import androidx.compose.foundation.lazy.items
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -127,7 +128,8 @@ class MainActivity : BaseActivity() {
 @Composable
 //@Preview
 fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileClick: () -> Unit = {}, onLookClick: () -> Unit = {},onLoveClick: () -> Unit, onFollowClick: () -> Unit){
-    val viewModel = MainViewModel()
+    //val viewModel = MainViewModel()
+    val viewModel: MainViewModel = viewModel() // ✅ Đúng cách
     val banners = remember { mutableStateListOf<SliderModel>()}
     val categories = remember { mutableStateListOf<CategoryModel>()}
     val recommended = remember { mutableStateListOf<ItemsModel>()}
@@ -135,7 +137,8 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
     var showCategoryLoading  by remember { mutableStateOf(true)}
     var showRecommendedLoading  by remember { mutableStateOf(true)}
     var showSearchDialog by remember { mutableStateOf(false) }
-
+    val productList = remember { mutableStateListOf<ItemsModel>() }
+    val context = LocalContext.current
     //Banner
     LaunchedEffect(Unit) {
         viewModel.loadBanner()
@@ -158,7 +161,8 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
 
     //Recommended
     LaunchedEffect(Unit) {
-        viewModel.loadRecommended()
+        //viewModel.loadRecommended()
+        viewModel.observeRecommendedRealtime()
         viewModel.recommended.observeForever {
             recommended.clear()
             recommended.addAll(it)
@@ -301,7 +305,7 @@ fun MainActivityScreen(userName: String ,onCartClick:() -> Unit = {}, onProfileC
 @Composable
 fun SearchDialog(
     onDismiss: () -> Unit,
-    viewModel: MainViewModel = MainViewModel()
+    viewModel: MainViewModel = viewModel()
 ) {
     val allItems = remember { mutableStateListOf<ItemsModel>() }
     var query by remember { mutableStateOf("") }

@@ -26,67 +26,170 @@ import androidx.navigation.NavController
 import com.example.onlinetechshop.ViewModel.AuthState
 import com.example.onlinetechshop.ViewModel.AuthViewModel
 import androidx.compose.runtime.getValue
-
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.R
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import coil.compose.AsyncImage
+//@Composable
+//fun LoginPage(navController: NavController, authViewModel: AuthViewModel){
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    val context = LocalContext.current
+//    val authState by authViewModel.authState.observeAsState()
+//
+//    // Hiện thông báo lỗi nếu có
+//    LaunchedEffect(authState) {
+//        if (authState is AuthState.Error) {
+//            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_SHORT).show()
+//        }
+//    }
+//    Column (
+//        modifier = Modifier.fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ){
+//        Text(
+//            text = "Đăng Nhập", fontSize = 32.sp
+//        )
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = {
+//                email = it
+//            },
+//            label = {
+//                Text(text = "Email")
+//            }
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        OutlinedTextField(
+//            value = password,
+//            onValueChange = {
+//                password = it
+//            },
+//            label = {
+//                Text(text = "Mật Khẩu")
+//            }
+//        )
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Button(onClick = {
+//            authViewModel.login(email,password)
+//        }) {
+//            Text(text = "Đăng Nhập")
+//        }
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        TextButton(onClick = {
+//            navController.navigate("signup")
+//        }) {
+//            Text(text = "Nếu bạn chưa có tài khoản? Đăng Ký!!")
+//        }
+//    }
+//
+//}
 @Composable
-fun LoginPage(navController: NavController, authViewModel: AuthViewModel){
+fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val context = LocalContext.current
     val authState by authViewModel.authState.observeAsState()
 
-    // Hiện thông báo lỗi nếu có
     LaunchedEffect(authState) {
         if (authState is AuthState.Error) {
             Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_SHORT).show()
         }
     }
-    Column (
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ){
-        Text(
-            text = "Đăng Nhập", fontSize = 32.sp
-        )
-        Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = {
-                email = it
-            },
-            label = {
-                Text(text = "Email")
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // ✅ Ảnh nền mờ
+        AsyncImage(
+            model = "https://res.cloudinary.com/dplrrj7gj/image/upload/v1751343804/Hinh-nen-mau-xanh-la-cay-cute__8_cnodei.jpg", // 👉 Thay URL tùy ý
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+            alpha = 0.7f
+        )
+
+        // 🔹 Giao diện chính
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "Đăng Nhập",
+                fontSize = 30.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colorResource(com.example.onlinetechshop.R.color.green),
+                    unfocusedBorderColor = colorResource(com.example.onlinetechshop.R.color.green),
+                    focusedLabelColor = colorResource(com.example.onlinetechshop.R.color.green)
+                )
+
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Mật Khẩu") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = colorResource(com.example.onlinetechshop.R.color.green),
+                    unfocusedBorderColor = colorResource(com.example.onlinetechshop.R.color.green),
+                    focusedLabelColor = colorResource(com.example.onlinetechshop.R.color.green)
+                )
+
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = { authViewModel.login(email, password) },
+                colors = ButtonDefaults.buttonColors(containerColor = colorResource(com.example.onlinetechshop.R.color.green)),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+            ) {
+                Text("Đăng Nhập", color = Color.White, fontSize = 16.sp)
             }
-        )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedTextField(
-            value = password,
-            onValueChange = {
-                password = it
-            },
-            label = {
-                Text(text = "Mật Khẩu")
+            TextButton(onClick = { navController.navigate("signup") }) {
+                Text("Bạn chưa có tài khoản? Đăng ký ngay!", color = Color.DarkGray,fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold)
             }
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = {
-            authViewModel.login(email,password)
-        }) {
-            Text(text = "Đăng Nhập")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        TextButton(onClick = {
-            navController.navigate("signup")
-        }) {
-            Text(text = "Nếu bạn chưa có tài khoản? Đăng Ký!!")
         }
     }
-
 }

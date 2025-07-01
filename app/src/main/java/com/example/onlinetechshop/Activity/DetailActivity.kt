@@ -155,18 +155,42 @@ fun DetailScreen(
                     .padding(end = 16.dp)
             )
             Text(
-                text = "$${item.price}",
-                fontSize = 22.sp
+                text = item.price.toVND(),
+                fontSize = 22.sp,
+                color = colorResource(R.color.green),
+                fontWeight = FontWeight.Bold
             )
         }
 
         RatingBar(rating = item.rating)
+        Text(
+            text = "📦 Tổng tồn kho: ${item.quantity} sản phẩm",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color.DarkGray,
+            modifier = Modifier.padding(vertical = 4.dp)
+        )
 
         ModelSelector(
             models = item.model,
             selectedModeIndex = selectedModelIndex,
-            onModelSelected = onModelSelected
+            onModelSelected = onModelSelected,
+            stockPerModel = item.stockPerModel
         )
+        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            // Nếu có model được chọn, hiển thị riêng tồn của model đó
+            if (selectedModelIndex in item.model.indices) {
+                val selected = item.model[selectedModelIndex]
+                val selectedStock = item.stockPerModel[selected] ?: 0
+                Text(
+                    text = "🟢 Còn lại: $selectedStock sản phẩm của model '$selected'",
+                    fontSize = 14.sp,
+                    color = Color(0xFF388E3C),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
 
         Text(
             text = item.description,
@@ -186,6 +210,12 @@ fun DetailScreen(
                         Toast.makeText(context, "Vui lòng chọn dòng sản phẩm!", Toast.LENGTH_SHORT).show()
                     } else {
                         val selectedModel = item.model[selectedModelIndex]
+                        val selectedModelStock = item.stockPerModel[selectedModel] ?: 0
+                        if (selectedModelStock <= 0) {
+                            Toast.makeText(context, "Model này đã hết hàng!", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
                         val itemCopy = item.copy(
                             model = arrayListOf(selectedModel),
                             numberIncart = 1
@@ -247,41 +277,56 @@ fun RatingBar(rating: Double) {
 fun ModelSelector(
     models: List<String>,
     selectedModeIndex: Int,
-    onModelSelected: (Int) -> Unit
-) {
-    LazyRow(modifier = Modifier.padding(vertical = 8.dp)) {
-        itemsIndexed(models) { index, model ->
-            Box(
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .height(48.dp)
-                    .then(
-                        if (index == selectedModeIndex) {
-                            Modifier.border(1.dp, colorResource(R.color.green), RoundedCornerShape(10.dp))
-                        } else {
-                            Modifier
-                        }
-                    )
-                    .background(
-                        if (index == selectedModeIndex) colorResource(R.color.lightGreen)
-                        else colorResource(R.color.lightGrey),
-                        shape = RoundedCornerShape(10.dp)
-                    )
-                    .clickable { onModelSelected(index) }
-                    .padding(horizontal = 16.dp)
-            ) {
+    onModelSelected: (Int) -> Unit,
+    stockPerModel: Map<String, Int>
+){LazyRow(modifier = Modifier.padding(vertical = 8.dp)) {
+    itemsIndexed(models) { index, model ->
+        val isSelected = index == selectedModeIndex
+        val stock = stockPerModel[model] ?: 0
+        val isOutOfStock = stock <= 0
+
+        val borderColor = if (isSelected) colorResource(R.color.green) else Color.Transparent
+        val bgColor = when {
+            isSelected -> colorResource(R.color.lightGreen)
+            isOutOfStock -> Color.LightGray
+            else -> colorResource(R.color.lightGrey)
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .height(IntrinsicSize.Min)
+                .background(bgColor, shape = RoundedCornerShape(10.dp))
+                .then(
+                    if (isSelected) Modifier.border(1.dp, borderColor, RoundedCornerShape(10.dp))
+                    else Modifier
+                )
+                .then(
+                    if (!isOutOfStock) Modifier.clickable { onModelSelected(index) }
+                    else Modifier
+                )
+                .padding(horizontal = 16.dp, vertical = 6.dp)
+        ) {
+            Text(
+                text = model,
+                textAlign = TextAlign.Center,
+                fontWeight = FontWeight.Bold,
+                color = if (isOutOfStock) Color.Gray
+                else if (isSelected) colorResource(R.color.green)
+                else colorResource(R.color.black)
+            )
+            if (isOutOfStock) {
                 Text(
-                    text = model,
-                    textAlign = TextAlign.Center,
-                    fontWeight = FontWeight.Bold,
-                    color = if (index == selectedModeIndex) colorResource(R.color.green)
-                    else colorResource(R.color.black),
-                    modifier = Modifier.align(Alignment.Center)
+                    text = "Hết hàng",
+                    fontSize = 10.sp,
+                    color = Color.Red,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
             }
         }
     }
-}
+}}
 
 @Composable
 fun ImageThumbnail(
@@ -314,4 +359,8 @@ fun ImageThumbnail(
                 .padding(4.dp)
         )
     }
+}
+// Thêm cuối file tiện ích định dạng tiền
+fun Double.toVND(): String {
+    return String.format("%,.0f ₫", this).replace(",", ".")
 }
