@@ -43,10 +43,6 @@ import com.example.onlinetechshop.pages.AuthActivity
 class IntroActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        /*window.clearFlags(FLAG_TRANSLUCENT_STATUS)
-        window.addFlags(FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
-        window.decorView.systemUiVisibility=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR*/
-        // Bỏ các API lỗi thời và sử dụng cách tiếp cận hiện đại
         enableEdgeToEdge()
         setContent {
             MaterialTheme { // Nên dùng theme custom thay vì MaterialTheme
@@ -86,16 +82,11 @@ fun IntroScreen( onClick: () -> Unit={}) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            /*text = stringResource(id = R.string.intro_title),
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-            lineHeight = 32.sp*/
             text = buildAnnotatedString {
                 withStyle(style = SpanStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold)) {
                     append("Chào Mừng Đến Với\n")
                 }
-                withStyle(style = SpanStyle(color = Color(0xFF39C7A5), fontSize = 26.sp, fontWeight = FontWeight.Bold)) {
+                withStyle(style = SpanStyle(color = Color(0xFF39C7A5), fontSize = 23.sp, fontWeight = FontWeight.Bold)) {
                     append("Cửa Hàng Công Nghệ OneTech\n")
                 }
                 withStyle(style = SpanStyle(fontSize = 26.sp, fontWeight = FontWeight.Bold)) {

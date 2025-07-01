@@ -27,7 +27,6 @@ import com.example.onlinetechshop.ViewModel.AuthState
 import com.example.onlinetechshop.ViewModel.AuthViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.R
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -40,69 +39,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
-//@Composable
-//fun LoginPage(navController: NavController, authViewModel: AuthViewModel){
-//    var email by remember { mutableStateOf("") }
-//    var password by remember { mutableStateOf("") }
-//    val context = LocalContext.current
-//    val authState by authViewModel.authState.observeAsState()
-//
-//    // Hiện thông báo lỗi nếu có
-//    LaunchedEffect(authState) {
-//        if (authState is AuthState.Error) {
-//            Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_SHORT).show()
-//        }
-//    }
-//    Column (
-//        modifier = Modifier.fillMaxSize(),
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ){
-//        Text(
-//            text = "Đăng Nhập", fontSize = 32.sp
-//        )
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        OutlinedTextField(
-//            value = email,
-//            onValueChange = {
-//                email = it
-//            },
-//            label = {
-//                Text(text = "Email")
-//            }
-//        )
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        OutlinedTextField(
-//            value = password,
-//            onValueChange = {
-//                password = it
-//            },
-//            label = {
-//                Text(text = "Mật Khẩu")
-//            }
-//        )
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        Button(onClick = {
-//            authViewModel.login(email,password)
-//        }) {
-//            Text(text = "Đăng Nhập")
-//        }
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        TextButton(onClick = {
-//            navController.navigate("signup")
-//        }) {
-//            Text(text = "Nếu bạn chưa có tài khoản? Đăng Ký!!")
-//        }
-//    }
-//
-//}
 @Composable
 fun LoginPage(navController: NavController, authViewModel: AuthViewModel) {
     var email by remember { mutableStateOf("") }

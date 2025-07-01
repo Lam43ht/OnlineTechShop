@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.ui.focus.FocusRequester.Companion.createRefs
 import androidx.compose.ui.text.style.TextAlign
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.example.onlinetechshop.Helper.formatVND
 
 class LoveActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,9 +87,15 @@ fun LoveScreen(managmentFavorite: ManagmentFavorite, onBackClick: () -> Unit) {
                     }
             )
         }
-
+        Spacer(modifier = Modifier.height(16.dp))
         if (favoriteItems.isEmpty()) {
-            Text(text = "Bạn chưa thêm sản phẩm nào vào yêu thích.", modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text(
+                text = "Bạn chưa thêm sản phẩm yêu thích nào.",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentWidth(Alignment.CenterHorizontally),
+                color = Color.Gray
+            )
         } else {
             LazyColumn {
                 items(favoriteItems) { item ->
@@ -126,12 +133,11 @@ fun FavoriteItemCard(item: ItemsModel, onRemove: () -> Unit, onClick: () -> Unit
             contentDescription = item.title,
             modifier = Modifier.size(64.dp)
         )
-
         Spacer(modifier = Modifier.width(12.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = item.title, fontWeight = FontWeight.Bold)
-            Text(text = "💵 ${item.price} đ", color = Color.Gray, fontSize = 13.sp)
+            Text(item.title, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            Text("💵 ${formatVND(item.price)}", fontSize = 14.sp, color = Color(0xFF2E7D32))
+            Text("⭐ ${item.rating} điểm", fontSize = 13.sp, color = Color.Gray)
         }
 
         IconButton(onClick = onRemove) {

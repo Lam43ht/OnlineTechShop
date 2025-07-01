@@ -95,6 +95,7 @@ import com.google.accompanist.pager.PagerState
 import com.google.firebase.auth.FirebaseAuth
 import okhttp3.internal.http2.Http2Reader
 import androidx.compose.material3.IconButton
+import com.example.onlinetechshop.Helper.formatVND
 
 class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -353,7 +354,7 @@ fun SearchDialog(
                         OutlinedTextField(
                             value = query,
                             onValueChange = { query = it },
-                            placeholder = { Text("🔍 Tìm sản phẩm...") },
+                            placeholder = { Text("Tìm sản phẩm...") },
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(end = 8.dp),
@@ -404,7 +405,7 @@ fun SearchDialog(
                                         Spacer(Modifier.width(8.dp))
                                         Column {
                                             Text(item.title, fontWeight = FontWeight.Bold)
-                                            Text("💵 ${item.price} đ", fontSize = 12.sp, color = Color.Gray)
+                                            Text("💵 ${formatVND(item.price)}", fontSize = 12.sp, color = Color.Gray)
                                         }
                                     }
                                 }
